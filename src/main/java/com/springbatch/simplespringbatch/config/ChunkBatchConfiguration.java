@@ -1,17 +1,14 @@
 package com.springbatch.simplespringbatch.config;//package com.springbatch.simplespringbatch.config;
 
-import com.springbatch.simplespringbatch.decider.MyJobExecutionDecider;
 import com.springbatch.simplespringbatch.domain.Product;
 import com.springbatch.simplespringbatch.domain.ProductFieldSetMapper;
-import com.springbatch.simplespringbatch.listener.MyStepExecutionListener;
+import com.springbatch.simplespringbatch.domain.ProductRowMapper;
 import com.springbatch.simplespringbatch.reader.ProductNameItemReader;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.job.flow.JobExecutionDecider;
-import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.Step;
@@ -19,10 +16,11 @@ import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.item.Chunk;
-import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.batch.infrastructure.item.ItemReader;
 import org.springframework.batch.infrastructure.item.ItemWriter;
-import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
+import org.springframework.batch.infrastructure.item.database.builder.JdbcCursorItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.database.builder.JdbcPagingItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer;
@@ -32,7 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
-import java.util.ArrayList;
+import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +40,9 @@ public class ChunkBatchConfiguration {
 
     @Autowired
     private JobRepository jobRepository;
+
+    @Autowired
+    private DataSource dataSource;
 
     private static final Logger log = LoggerFactory.getLogger(ChunkBatchConfiguration.class);
 
@@ -72,9 +73,45 @@ public class ChunkBatchConfiguration {
     }
 
     @Bean
+    public ItemReader<Product> jdbcCursorItemReader() {
+
+        return new JdbcCursorItemReaderBuilder<Product>()
+                .dataSource(dataSource)
+                // ordering is very important
+                .sql("select * from PRODUCT_DETAILS order by product_id asc")
+                .rowMapper(new ProductRowMapper())
+                .name("JDBCProduct_ItemReader")
+                .build();
+    }
+
+    /**
+     * This enables reading data in page by page, it is suitable for multi-threaded env b/c it is thread-safe
+     * @return
+     */
+    @Bean
+    public ItemReader<Product> jdbcPagingItemReader() throws Exception {
+
+        SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+        sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
+        sqlPagingQueryProviderFactoryBean.setSelectClause("select product_id, product_name, product_category, product_price");
+        sqlPagingQueryProviderFactoryBean.setFromClause("from PRODUCT_DETAILS");
+        sqlPagingQueryProviderFactoryBean.setSortKey("product_id");
+
+        return new JdbcPagingItemReaderBuilder<Product>()
+                .dataSource(dataSource)
+                // ordering is very important
+                .queryProvider(sqlPagingQueryProviderFactoryBean.getObject())
+                .rowMapper(new ProductRowMapper())
+                .name("JDBCPagingProduct_ItemReader")
+                // This number should be equal to chunk size
+                .pageSize(10)
+                .build();
+    }
+
+    @Bean
     public Step step1() {
         return new StepBuilder("step1", jobRepository)
-                .<String, String>chunk(3)
+                .<String, String>chunk(10)
                 .reader(itemReader())
                 .writer(new ItemWriter<String>() {
                     @Override
@@ -90,10 +127,10 @@ public class ChunkBatchConfiguration {
     }
 
     @Bean
-    public Step productStep() {
+    public Step productStep() throws Exception {
         return new StepBuilder("productStep", jobRepository)
                 .<Product, Product>chunk(3)
-                .reader(flatFileItemReader())
+                .reader(jdbcPagingItemReader())
                 .writer(new ItemWriter<Product>() {
                     @Override
                     public void write(Chunk<? extends Product> chunk) throws Exception {
@@ -109,7 +146,7 @@ public class ChunkBatchConfiguration {
 
 
     @Bean
-    public Job firstJob(JobRepository jobRepository) {
+    public Job firstJob(JobRepository jobRepository) throws Exception {
         return new JobBuilder("simpleJobWithNextTransition", jobRepository)
                 .start(productStep())
                 .build();
