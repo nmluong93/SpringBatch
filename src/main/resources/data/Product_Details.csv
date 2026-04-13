@@ -1,0 +1,101 @@
+product_id,product_name,product_category,product_price
+1,Google Pixel 8,Mobile Phones,1200
+2,iPad Mini,Tablets,800
+3,Canon 1500D,Cameras,500
+4,LG 4K Ultra HD TV,Televisions,300
+5,Goalkeeper Gloves,Sports Accessories,100
+6,Samsung Galaxy S24,Mobile Phones,1150
+7,Dell XPS 15,Laptops,1850
+8,Sony WH-1000XM5,Headphones,420
+9,Apple MacBook Air M3,Laptops,1420
+10,Nike Air Max,Sports Accessories,160
+11,Sony A7 IV,Cameras,2450
+12,Bose QuietComfort Ultra,Headphones,480
+13,OnePlus 12,Mobile Phones,950
+14,iPhone 16 Pro,Mobile Phones,1350
+15,Asus ROG Strix,Laptops,2100
+16,Samsung QLED 55,Televisions,780
+17,Canon EOS R6,Cameras,2200
+18,Adidas Football Boots,Sports Accessories,120
+19,Google Pixel Watch,Smart Watches,320
+20,Microsoft Surface Pro,Tablets,950
+21,LG OLED 65,Televisions,1450
+22,Sony ZV-1F,Cameras,650
+23,Under Armour Training Gloves,Sports Accessories,85
+24,MacBook Pro 16 M3,Laptops,3200
+25,JBL Flip 6,Headphones,130
+26,Xiaomi 14,Mobile Phones,780
+27,Dell Alienware m18,Laptops,2800
+28,Canon PowerShot G7 X,Cameras,720
+29,Samsung Galaxy Tab S9,Tablets,920
+30,Nike Mercurial Superfly,Sports Accessories,220
+31,Google Pixel 8 Pro,Mobile Phones,1380
+32,Bose SoundLink Flex,Headphones,150
+33,Sony Bravia 75,Televisions,1950
+34,Apple iPad Air 6,Tablets,720
+35,GoPro Hero 12,Cameras,380
+36,Adidas Predator Boots,Sports Accessories,180
+37,OnePlus Open,Tablets,1650
+38,HP Omen 17,Laptops,2300
+39,Sony WH-1000XM4,Headphones,350
+40,LG UltraGear Monitor,Televisions,450
+41,Samsung Galaxy Buds 3,Headphones,180
+42,Canon RF 24-70mm Lens,Cameras,2200
+43,Nike Phantom GX,Sports Accessories,140
+44,Microsoft Surface Laptop 7,Laptops,1650
+45,Google Pixel Buds Pro,Headphones,220
+46,iPhone 15,Mobile Phones,920
+47,Asus Zenbook 14,Laptops,1250
+48,Sony A6700,Cameras,1450
+49,Samsung Galaxy Watch 7,Smart Watches,380
+50,Apple AirPods Max,Headphones,550
+51,LG 4K OLED TV,Televisions,1250
+52,Canon EOS R8,Cameras,1350
+53,Under Armour Curry Shoes,Sports Accessories,160
+54,Dell Inspiron 16,Laptops,920
+55,OnePlus Nord 4,Mobile Phones,520
+56,Bose QC45,Headphones,320
+57,Sony Xperia 5 V,Mobile Phones,980
+58,Nike Blazer Mid,Sports Accessories,110
+59,Apple iPad Pro 13,Tablets,1250
+60,GoPro Hero 11 Black,Cameras,320
+61,Samsung Galaxy S23 FE,Mobile Phones,680
+62,Microsoft Surface Go 4,Tablets,520
+63,Asus TUF Gaming A15,Laptops,1350
+64,Sony LinkBuds S,Headphones,180
+65,Canon EOS M50 Mark II,Cameras,580
+66,Adidas Samba OG,Sports Accessories,95
+67,LG Gram 17,Laptops,1450
+68,Google Pixel Tablet,Tablets,620
+69,Bose SoundSport Free,Headphones,160
+70,Sony ZV-E10,Cameras,720
+71,Nike Air Force 1,Sports Accessories,130
+72,iPhone 14,Mobile Phones,750
+73,Dell XPS 13,Laptops,1480
+74,Samsung Galaxy Tab A9,Tablets,280
+75,Canon G5 X Mark II,Cameras,850
+76,Under Armour Project Rock,Headphones,95
+77,OnePlus 11,Mobile Phones,820
+78,Apple Mac mini M2,Computers,720
+79,Sony WH-CH720N,Headphones,150
+80,LG C3 OLED 55,Televisions,1350
+81,Google Pixel 7a,Mobile Phones,480
+82,Nike Dunk Low,Sports Accessories,115
+83,Asus Vivobook 15,Laptops,680
+84,Sony A6400,Cameras,980
+85,Bose QuietComfort Earbuds,Headphones,280
+86,Samsung Galaxy Book4,Laptops,1150
+87,Canon EOS R50,Cameras,620
+88,Adidas Predator Edge,Sports Accessories,160
+89,Apple Watch Ultra 2,Smart Watches,780
+90,iPad 10th Gen,Tablets,450
+91,Dell G16 Gaming,Laptops,1650
+92,Sony WF-1000XM5,Headphones,320
+93,Google Nest Hub,Smart Watches,95
+94,LG 4K LED TV,Televisions,620
+95,Nike Tiempo Legend,Sports Accessories,85
+96,OnePlus Nord CE 4,Mobile Phones,420
+97,Canon SX740 HS,Cameras,420
+98,Microsoft Surface Studio,Computers,3200
+99,Sony Bravia XR-65,Televisions,1850
+100,Goalkeeper Gloves Pro,Sports Accessories,75

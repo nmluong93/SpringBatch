@@ -23,7 +23,7 @@ public class JobLauncherController {
     private JobLauncher jobLauncher;
 
     @Autowired
-    @Qualifier("job4")
+    @Qualifier("firstJob")
     private Job job;
 
     @GetMapping("/api/launchJob/{id}")
