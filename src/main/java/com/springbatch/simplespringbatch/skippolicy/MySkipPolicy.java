@@ -26,12 +26,20 @@ public class MySkipPolicy implements SkipPolicy {
     @Override
     public boolean shouldSkip(Throwable t, long skipCount) throws SkipLimitExceededException {
         log.info("Skip Count: {}", skipCount);
-        if (t instanceof ValidationException exp && skipCount > 3) {
-            return false;
+        if (skipCount < 3) {
+            if (t instanceof ValidationException) {
+                return true;
+            }
+            if (t instanceof FlatFileParseException exp) {
+                String line = exp.getInput();
+                String[] arr = line.split(",");
+                if (arr.length >= 4) {
+                    return true;
+                }
+                log.info("Broken Line: {}", line);
+
+            }
         }
-        if (t instanceof FlatFileParseException exp && skipCount > 3) {
-            return false;
-        }
-        return true;
+        return false;
     }
 }
