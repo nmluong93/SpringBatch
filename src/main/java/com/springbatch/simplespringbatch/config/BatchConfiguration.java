@@ -92,6 +92,20 @@ public class BatchConfiguration {
     }
 
     @Bean
+    public Step step7() {
+        return new StepBuilder("step7", jobRepository)
+                .tasklet(new CustomizedTaskLet("Task of step 7 "))
+                .build();
+    }
+
+    @Bean
+    public Step step8() {
+        return new StepBuilder("step8", jobRepository)
+                .tasklet(new CustomizedTaskLet("Task of step 8 "))
+                .build();
+    }
+
+    @Bean
     public Flow flow1() {
         FlowBuilder<Flow> flow1 = new FlowBuilder<>("flow1");
         flow1.start(step3()).next(step4()).end();
@@ -103,6 +117,13 @@ public class BatchConfiguration {
         FlowBuilder<Flow> flow2 = new FlowBuilder<>("flow2");
         flow2.start(step5()).next(step6()).end();
         return flow2.build();
+    }
+
+    @Bean
+    public Flow flow3() {
+        FlowBuilder<Flow> flow3 = new FlowBuilder<>("flow3");
+        flow3.start(step7()).next(step8()).end();
+        return flow3.build();
     }
 
     @Bean
@@ -136,11 +157,17 @@ public class BatchConfiguration {
     }
 
     @Bean
+    public Flow splitFlow() {
+        FlowBuilder<Flow> flowBuilder = new FlowBuilder<>("splitFlow");
+        flowBuilder.split(new SimpleAsyncTaskExecutor())
+                .add(flow1(), flow2(), flow3());
+        return flowBuilder.build();
+    }
+
+    @Bean
     public Job jobRunningParallelWithFlows(JobRepository jobRepository) {
         return new JobBuilder("jobRunningParallelWithFlows", jobRepository)
-                .start(flow1())
-                .split(new SimpleAsyncTaskExecutor())
-                .add(flow2())
+                .start(splitFlow())
                 .end()
                 .build();
     }
@@ -167,7 +194,6 @@ public class BatchConfiguration {
                 .next(stepForNestedJob())
                 .build();
     }
-
 
 
     @Bean
