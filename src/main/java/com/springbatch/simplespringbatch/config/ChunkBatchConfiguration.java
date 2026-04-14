@@ -6,7 +6,7 @@ import com.springbatch.simplespringbatch.domain.ProductFieldSetMapper;
 import com.springbatch.simplespringbatch.domain.ProductRowMapper;
 import com.springbatch.simplespringbatch.domain.ProductValidator;
 import com.springbatch.simplespringbatch.processor.ProductFilterItemProcessor;
-import com.springbatch.simplespringbatch.processor.MyProductItemProcessor;
+import com.springbatch.simplespringbatch.processor.TransformProductItemProcessor;
 import com.springbatch.simplespringbatch.reader.ProductNameItemReader;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,6 +34,8 @@ import org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMap
 import org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
+import org.springframework.batch.infrastructure.item.validator.BeanValidatingItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.ValidatingItemProcessor;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +100,7 @@ public class ChunkBatchConfiguration {
 
     /**
      * This enables reading data in page by page, it is suitable for multi-threaded env b/c it is thread-safe
+     *
      * @return
      */
     @Bean
@@ -137,10 +140,10 @@ public class ChunkBatchConfiguration {
     }
 
     @Bean
-    public ItemWriter<Product> jdbcBatchItemWriter() throws Exception {
-        return new JdbcBatchItemWriterBuilder<Product>()
+    public ItemWriter<OSProduct> jdbcBatchItemWriter() throws Exception {
+        return new JdbcBatchItemWriterBuilder<OSProduct>()
                 .dataSource(dataSource)
-                .sql("insert into PRODUCT_DETAILS_OUTPUT values(:productId, :productName, :productCategory, :productPrice)")
+                .sql("insert into OS_PRODUCT_DETAILS_OUTPUT values(:productId, :productName, :productCategory, :productPrice, :taxPercent, :sku, :shippingRate)")
 //                .itemPreparedStatementSetter(new ProductItemPrepareStatementSetter())
                 .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
                 .build();
@@ -155,15 +158,37 @@ public class ChunkBatchConfiguration {
         return productValidatingItemProcessor;
     }
 
+    @Bean
+    public BeanValidatingItemProcessor<Product> productBeanValidatingItemProcessor() {
+        // work together with annotation validation of jakarta.validation.constraints.* defined in Product bean
+        BeanValidatingItemProcessor<Product> productBeanValidatingItemProcessor = new BeanValidatingItemProcessor<>();
+        productBeanValidatingItemProcessor.setFilter(true);
+        return productBeanValidatingItemProcessor;
+    }
+
 
     @Bean
-    public ItemProcessor<Product, OSProduct> myProductItemProcessor() {
-        return new MyProductItemProcessor();
+    public ItemProcessor<Product, OSProduct> transformProductItemProcessor() {
+        return new TransformProductItemProcessor();
     }
 
     @Bean
     public ItemProcessor<Product, Product> filterProductItemProcessor() {
         return new ProductFilterItemProcessor();
+    }
+
+
+    @Bean
+    public CompositeItemProcessor<Product, OSProduct> compositeItemProcessor() {
+        CompositeItemProcessor<Product, OSProduct> productOSProductCompositeItemProcessor = new CompositeItemProcessor<>();
+
+        productOSProductCompositeItemProcessor.setDelegates(List.of(
+                productBeanValidatingItemProcessor(),
+                filterProductItemProcessor(),
+                transformProductItemProcessor()
+        ));
+
+        return productOSProductCompositeItemProcessor;
     }
 
     @Bean
@@ -205,9 +230,10 @@ public class ChunkBatchConfiguration {
     @Bean
     public Step productStepFromJdbcPagingItemReaderToFlatFileWriter() throws Exception {
         return new StepBuilder("productStep2", jobRepository)
-                .<Product, Product>chunk(3)
+                .<Product, OSProduct>chunk(3)
                 .reader(jdbcPagingItemReader())
-                .processor(validatorProductItemProcessor())
+                .processor(compositeItemProcessor())
+//                .processor(validatorProductItemProcessor())
 //                .processor(filterProductItemProcessor())
 //                .processor(myProductItemProcessor())
                 .writer(jdbcBatchItemWriter())

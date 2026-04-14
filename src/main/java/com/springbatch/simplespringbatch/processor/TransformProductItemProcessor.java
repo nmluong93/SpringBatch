@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
 
-public class MyProductItemProcessor implements ItemProcessor<Product, OSProduct> {
-    private static final Logger log = LoggerFactory.getLogger(MyProductItemProcessor.class);
+public class TransformProductItemProcessor implements ItemProcessor<Product, OSProduct> {
+    private static final Logger log = LoggerFactory.getLogger(TransformProductItemProcessor.class);
 
     /**
      * Process the provided item, returning a potentially modified or new item for
