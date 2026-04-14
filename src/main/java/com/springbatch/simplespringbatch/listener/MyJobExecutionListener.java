@@ -19,7 +19,7 @@ public class MyJobExecutionListener {
         log.info("JobExecutionListener:BeforeJob - Job name {} \n\t Parameters: {} - Start: {}",  jobExecution.getJobInstance().getJobName(), jobExecution.getJobParameters(),  jobExecution.getStartTime());
 
 
-        jobExecution.getExecutionContext().put("jk1", "XYZ");
+        jobExecution.getExecutionContext().put("sk1", "XYZ");
     }
 
     /**

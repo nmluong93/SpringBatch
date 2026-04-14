@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
@@ -33,6 +34,9 @@ public class BatchConfigurationForSharingContext {
     @Autowired
     private MyStepExecutionListener myStepExecutionListener;
 
+    @Autowired
+    private JobExecutionDecider jobExecutionDecider;
+
 
     @Bean
     public Step step1() {
@@ -45,11 +49,11 @@ public class BatchConfigurationForSharingContext {
                         ExecutionContext jobExecutionCtx = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
                         log.info("Job execution context: {}", jobExecutionCtx);
 
-                        jobExecutionCtx.put("sk-step1", "ABC");
+//                        jobExecutionCtx.put("sk-step1", "ABC");
 
                         ExecutionContext stepExtContext = chunkContext.getStepContext().getStepExecution().getExecutionContext();
                         // this will promote the key-value below into Job execution context so that other steps can see it from JobExecutionContext as well
-                        stepExtContext.put("k1", "ABC");
+                        stepExtContext.put("sk1", "ABC");
                         return RepeatStatus.FINISHED;
                     }
                 })
@@ -64,9 +68,9 @@ public class BatchConfigurationForSharingContext {
                     @Override
                     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
                         log.info("Task of step 2 execute");
-                        ExecutionContext jobExecutionCtx = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-                        log.info("Job execution context: {}", jobExecutionCtx);
-//                        jobExecutionCtx.put("sk-step2", "EFD");
+                        ExecutionContext jobExecutionCtx = chunkContext.getStepContext().getStepExecution().getExecutionContext();
+                        log.info("Step execution context: {}", jobExecutionCtx);
+                        jobExecutionCtx.put("sk2", "KLM");
 
                         return RepeatStatus.FINISHED;
                     }
@@ -84,7 +88,40 @@ public class BatchConfigurationForSharingContext {
                         log.info("Task of step 3 execute");
                         ExecutionContext jobExecutionCtx = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
                         log.info("Job execution context: {}", jobExecutionCtx);
-                        jobExecutionCtx.put("sk-step3", "ABC");
+                        jobExecutionCtx.put("sk-3", "ABC");
+                        return RepeatStatus.FINISHED;
+                    }
+                })
+                .listener(myStepExecutionListener)
+                .build();
+    }
+
+    @Bean
+    public Step step4() {
+        return new StepBuilder("step4", jobRepository)
+                .tasklet(new Tasklet() {
+                    @Override
+                    public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+                        log.info("Task of step 4 execute");
+                        ExecutionContext jobExecutionCtx = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+                        log.info("Job execution context: {}", jobExecutionCtx);
+                        return RepeatStatus.FINISHED;
+                    }
+                })
+                .listener(myStepExecutionListener)
+                .build();
+    }
+
+
+    @Bean
+    public Step step5() {
+        return new StepBuilder("step5", jobRepository)
+                .tasklet(new Tasklet() {
+                    @Override
+                    public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+                        log.info("Task of step 5 execute");
+                        ExecutionContext jobExecutionCtx = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+                        log.info("Job execution context: {}", jobExecutionCtx);
                         return RepeatStatus.FINISHED;
                     }
                 })
@@ -98,7 +135,13 @@ public class BatchConfigurationForSharingContext {
                 .listener(myJobExecutionListener)
                 .start(step1())
                 .next(step2())
-                .next(step3())
+                .next(jobExecutionDecider)
+                    .on("STEP_3").to(step3())
+                .from(jobExecutionDecider)
+                    .on("STEP_4").to(step4())
+                .from(jobExecutionDecider)
+                    .on("STEP_5").to(step5())
+                .end()
                 .build();
     }
 
@@ -106,7 +149,7 @@ public class BatchConfigurationForSharingContext {
     @Bean
     public StepExecutionListener promotionListener() {
         var promotionListener = new ExecutionContextPromotionListener();
-        promotionListener.setKeys(new String[]{"k1", "k2"});
+        promotionListener.setKeys(new String[]{"sk1", "sk2"});
         return promotionListener;
     }
 
