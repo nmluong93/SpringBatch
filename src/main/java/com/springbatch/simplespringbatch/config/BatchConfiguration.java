@@ -21,6 +21,7 @@ import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 @Configuration
 public class BatchConfiguration {
@@ -64,14 +65,14 @@ public class BatchConfiguration {
     @Bean
     public Step step3() {
         return new StepBuilder("step3", jobRepository)
-                .tasklet(new CustomizedTaskLet("Task of step 3 execute"))
+                .tasklet(new CustomizedTaskLet("Task of step 3 "))
                 .build();
     }
 
     @Bean
     public Step step4() {
         return new StepBuilder("step4", jobRepository)
-                .tasklet(new CustomizedTaskLet("Task of step 4 execute"))
+                .tasklet(new CustomizedTaskLet("Task of step 4 "))
                 .build();
     }
 
@@ -79,14 +80,14 @@ public class BatchConfiguration {
     @Bean
     public Step step5() {
         return new StepBuilder("step5", jobRepository)
-                .tasklet(new CustomizedTaskLet("Task of step 5 execute"))
+                .tasklet(new CustomizedTaskLet("Task of step 5 "))
                 .build();
     }
 
     @Bean
     public Step step6() {
         return new StepBuilder("step6", jobRepository)
-                .tasklet(new CustomizedTaskLet("Task of step 6 execute"))
+                .tasklet(new CustomizedTaskLet("Task of step 6 "))
                 .build();
     }
 
@@ -95,6 +96,13 @@ public class BatchConfiguration {
         FlowBuilder<Flow> flow1 = new FlowBuilder<>("flow1");
         flow1.start(step3()).next(step4()).end();
         return flow1.build();
+    }
+
+    @Bean
+    public Flow flow2() {
+        FlowBuilder<Flow> flow2 = new FlowBuilder<>("flow2");
+        flow2.start(step5()).next(step6()).end();
+        return flow2.build();
     }
 
     @Bean
@@ -123,6 +131,16 @@ public class BatchConfiguration {
         return new JobBuilder("jobWithFlowReused", jobRepository)
                 .start(flow1())
                 .next(step2())
+                .end()
+                .build();
+    }
+
+    @Bean
+    public Job jobRunningParallelWithFlows(JobRepository jobRepository) {
+        return new JobBuilder("jobRunningParallelWithFlows", jobRepository)
+                .start(flow1())
+                .split(new SimpleAsyncTaskExecutor())
+                .add(flow2())
                 .end()
                 .build();
     }
@@ -194,7 +212,7 @@ public class BatchConfiguration {
 
         @Override
         public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-            log.info("Executing: " + stepInfo);
+            log.info("Executing: {}, {}", stepInfo, Thread.currentThread().getName());
             return RepeatStatus.FINISHED;
         }
     }
