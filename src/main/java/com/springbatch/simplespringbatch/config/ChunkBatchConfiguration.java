@@ -38,6 +38,7 @@ import org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMap
 import org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.infrastructure.item.file.transform.FlatFileFormatException;
 import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.BeanValidatingItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.ValidatingItemProcessor;
@@ -98,7 +99,7 @@ public class ChunkBatchConfiguration {
 
         return new FlatFileItemReaderBuilder<Product>()
                 .linesToSkip(1)
-                .resource(new ClassPathResource("/data/Product_Details.csv"))
+                .resource(new ClassPathResource("/data/Product_Details_with_failed_line.csv"))
                 .lineMapper(lineMapper)
                 .name("ProductDetail_ItemReader")
                 .build();
@@ -253,7 +254,10 @@ public class ChunkBatchConfiguration {
                 .reader(flatFileItemReader())
                 .processor(compositeItemProcessor())
                 .faultTolerant()
-                .skip(ValidationException.class).skipLimit(2).skipListener(itemSkipListener)
+                    .skip(ValidationException.class)
+                    .skip(FlatFileFormatException.class)
+                    .skipLimit(3)
+                .skipListener(itemSkipListener)
 //                .processor(validatorProductItemProcessor())
 //                .processor(filterProductItemProcessor())
 //                .processor(myProductItemProcessor())
