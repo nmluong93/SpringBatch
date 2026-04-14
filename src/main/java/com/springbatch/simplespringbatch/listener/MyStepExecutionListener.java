@@ -3,13 +3,15 @@ package com.springbatch.simplespringbatch.listener;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.annotation.AfterStep;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class MyStepExecutionListener implements StepExecutionListener {
+public class MyStepExecutionListener /*implements StepExecutionListener*/ {
     /**
      * Give a listener a chance to modify the exit status from a step. The value returned
      * is combined with the normal exit status by using
@@ -22,11 +24,12 @@ public class MyStepExecutionListener implements StepExecutionListener {
      * @return an {@link ExitStatus} to combine with the normal value. Return {@code null}
      * (the default) to leave the old value unchanged.
      */
-    @Override
+    @BeforeStep
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
         log.info("MyStepExecutionListener:afterStep - Step name: {}", stepExecution.getStepName());
         log.info("Start time: {}. End time: {}", stepExecution.getStartTime(), stepExecution.getEndTime());
-        return new ExitStatus("COMPLETED");
+        // using null => the step ExitStatus will depend on the default behavior => Success -> COMPLETED
+        return null;
     }
 
     /**
@@ -35,7 +38,7 @@ public class MyStepExecutionListener implements StepExecutionListener {
      *
      * @param stepExecution instance of {@link StepExecution}.
      */
-    @Override
+    @AfterStep
     public void beforeStep(StepExecution stepExecution) {
         log.info("MyStepExecutionListener:beforeStep - Step name: {}", stepExecution.getStepName());
         log.info("Start time: {}", stepExecution.getStartTime());
