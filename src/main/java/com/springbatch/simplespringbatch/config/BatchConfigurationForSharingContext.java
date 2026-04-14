@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
+import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.Step;
@@ -44,9 +46,14 @@ public class BatchConfigurationForSharingContext {
                         log.info("Job execution context: {}", jobExecutionCtx);
 
                         jobExecutionCtx.put("sk-step1", "ABC");
+
+                        ExecutionContext stepExtContext = chunkContext.getStepContext().getStepExecution().getExecutionContext();
+                        // this will promote the key-value below into Job execution context so that other steps can see it from JobExecutionContext as well
+                        stepExtContext.put("k1", "ABC");
                         return RepeatStatus.FINISHED;
                     }
                 })
+                .listener(promotionListener())
                 .build();
     }
 
@@ -59,10 +66,12 @@ public class BatchConfigurationForSharingContext {
                         log.info("Task of step 2 execute");
                         ExecutionContext jobExecutionCtx = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
                         log.info("Job execution context: {}", jobExecutionCtx);
-                        jobExecutionCtx.put("sk-step2", "EFD");
+//                        jobExecutionCtx.put("sk-step2", "EFD");
+
                         return RepeatStatus.FINISHED;
                     }
                 })
+                .listener(promotionListener())
                 .build();
     }
 
@@ -91,6 +100,14 @@ public class BatchConfigurationForSharingContext {
                 .next(step2())
                 .next(step3())
                 .build();
+    }
+
+
+    @Bean
+    public StepExecutionListener promotionListener() {
+        var promotionListener = new ExecutionContextPromotionListener();
+        promotionListener.setKeys(new String[]{"k1", "k2"});
+        return promotionListener;
     }
 
 }
