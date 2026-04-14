@@ -75,6 +75,21 @@ public class BatchConfiguration {
                 .build();
     }
 
+
+    @Bean
+    public Step step5() {
+        return new StepBuilder("step5", jobRepository)
+                .tasklet(new CustomizedTaskLet("Task of step 5 execute"))
+                .build();
+    }
+
+    @Bean
+    public Step step6() {
+        return new StepBuilder("step6", jobRepository)
+                .tasklet(new CustomizedTaskLet("Task of step 6 execute"))
+                .build();
+    }
+
     @Bean
     public Flow flow1() {
         FlowBuilder<Flow> flow1 = new FlowBuilder<>("flow1");
@@ -111,6 +126,31 @@ public class BatchConfiguration {
                 .end()
                 .build();
     }
+
+    @Bean
+    public Job nestedJob() {
+        return new JobBuilder("nestedJob", jobRepository)
+                .start(step5())
+                .next(step6())
+                .build();
+    }
+
+    @Bean
+    public Step stepForNestedJob() {
+        return new StepBuilder("stepForNestedJob", jobRepository)
+                .job(nestedJob())
+                .build();
+    }
+
+    @Bean
+    public Job jobUseNestedJob(JobRepository jobRepository) {
+        return new JobBuilder("jobUseNestedJob", jobRepository)
+                .start(step1())
+                .next(stepForNestedJob())
+                .build();
+    }
+
+
 
     @Bean
     public Job thirdJob(JobRepository jobRepository) {

@@ -23,7 +23,7 @@ public class JobLauncherController {
     private JobLauncher jobLauncher;
 
     @Autowired
-    @Qualifier("secondJobReuseFlow")
+    @Qualifier("jobUseNestedJob")
     private Job job;
 
     @GetMapping("/api/launchJob/{id}")
