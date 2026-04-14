@@ -16,6 +16,7 @@ import org.springframework.batch.core.listener.ChunkListener;
 import org.springframework.batch.core.listener.ItemProcessListener;
 import org.springframework.batch.core.listener.ItemReadListener;
 import org.springframework.batch.core.listener.ItemWriteListener;
+import org.springframework.batch.core.listener.SkipListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.Step;
@@ -73,6 +74,9 @@ public class ChunkBatchConfiguration {
 
     @Autowired
     private ItemWriteListener<OSProduct> itemWriteListener;
+
+    @Autowired
+    private SkipListener<Product, OSProduct> itemSkipListener;
 
     @Bean
     public ItemReader<String> itemReader() {
@@ -249,7 +253,7 @@ public class ChunkBatchConfiguration {
                 .reader(flatFileItemReader())
                 .processor(compositeItemProcessor())
                 .faultTolerant()
-                .skip(ValidationException.class).skipLimit(2)
+                .skip(ValidationException.class).skipLimit(2).skipListener(itemSkipListener)
 //                .processor(validatorProductItemProcessor())
 //                .processor(filterProductItemProcessor())
 //                .processor(myProductItemProcessor())
