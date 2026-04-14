@@ -1,8 +1,10 @@
 package com.springbatch.simplespringbatch.config;//package com.springbatch.simplespringbatch.config;
 
+import com.springbatch.simplespringbatch.domain.OSProduct;
 import com.springbatch.simplespringbatch.domain.Product;
 import com.springbatch.simplespringbatch.domain.ProductFieldSetMapper;
 import com.springbatch.simplespringbatch.domain.ProductRowMapper;
+import com.springbatch.simplespringbatch.processor.MyProductItemProcessor;
 import com.springbatch.simplespringbatch.reader.ProductNameItemReader;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.batch.infrastructure.item.ItemReader;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.batch.infrastructure.item.database.BeanPropertyItemSqlParameterSourceProvider;
@@ -131,13 +134,18 @@ public class ChunkBatchConfiguration {
     }
 
     @Bean
-    public ItemWriter<Product> jdbcBatchItemWriter() throws Exception {
-        return new JdbcBatchItemWriterBuilder<Product>()
+    public ItemWriter<OSProduct> jdbcBatchItemWriter() throws Exception {
+        return new JdbcBatchItemWriterBuilder<OSProduct>()
                 .dataSource(dataSource)
-                .sql("insert into PRODUCT_DETAILS_OUTPUT values(:productId, :productName, :productCategory, :productPrice)")
+                .sql("insert into OS_PRODUCT_DETAILS_OUTPUT values(:productId, :productName, :productCategory, :productPrice, :taxPercent, :sku, :shippingRate)")
 //                .itemPreparedStatementSetter(new ProductItemPrepareStatementSetter())
                 .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
                 .build();
+    }
+
+    @Bean
+    public ItemProcessor<Product, OSProduct> myProductItemProcessor() {
+        return new MyProductItemProcessor();
     }
 
     @Bean
@@ -179,8 +187,9 @@ public class ChunkBatchConfiguration {
     @Bean
     public Step productStepFromJdbcPagingItemReaderToFlatFileWriter() throws Exception {
         return new StepBuilder("productStep2", jobRepository)
-                .<Product, Product>chunk(3)
+                .<Product, OSProduct>chunk(3)
                 .reader(jdbcPagingItemReader())
+                .processor(myProductItemProcessor())
                 .writer(jdbcBatchItemWriter())
                 .build();
     }

@@ -1,3 +1,14 @@
 package com.springbatch.simplespringbatch.domain;
 
-public record Product (Integer productId, String productName, String productCategory, Integer productPrice) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class Product {
+    private Integer productId;
+    private String productName;
+    private String productCategory;
+    private Integer productPrice;
+
+}

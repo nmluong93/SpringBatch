@@ -15,9 +15,9 @@ public class ProductItemPrepareStatementSetter implements org.springframework.ba
      */
     @Override
     public void setValues(Product item, PreparedStatement ps) throws SQLException {
-        ps.setInt(1, item.productId());
-        ps.setString(2, item.productName());
-        ps.setString(3, item.productCategory());
-        ps.setInt(4, item.productPrice());
+        ps.setInt(1, item.getProductId());
+        ps.setString(2, item.getProductName());
+        ps.setString(3, item.getProductCategory());
+        ps.setInt(4, item.getProductPrice());
     }
 }
