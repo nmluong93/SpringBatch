@@ -13,6 +13,9 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.listener.ChunkListener;
+import org.springframework.batch.core.listener.ItemProcessListener;
+import org.springframework.batch.core.listener.ItemReadListener;
+import org.springframework.batch.core.listener.ItemWriteListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.Step;
@@ -60,6 +63,15 @@ public class ChunkBatchConfiguration {
 
     @Autowired
     private ChunkListener myChunkListener;
+
+    @Autowired
+    private ItemReadListener<Product> itemReadListener;
+
+    @Autowired
+    private ItemProcessListener<Product, OSProduct> itemProcessListener;
+
+    @Autowired
+    private ItemWriteListener<OSProduct> itemWriteListener;
 
     @Bean
     public ItemReader<String> itemReader() {
@@ -120,7 +132,7 @@ public class ChunkBatchConfiguration {
                 .rowMapper(new ProductRowMapper())
                 .name("JDBCPagingProduct_ItemReader")
                 // This number should be equal to chunk size
-                .pageSize(10)
+                .pageSize(3)
                 .build();
     }
 
@@ -239,6 +251,9 @@ public class ChunkBatchConfiguration {
 //                .processor(filterProductItemProcessor())
 //                .processor(myProductItemProcessor())
                 .writer(jdbcBatchItemWriter())
+                .listener(itemReadListener)
+                .listener(itemWriteListener)
+                .listener(itemProcessListener)
                 .build();
     }
 
