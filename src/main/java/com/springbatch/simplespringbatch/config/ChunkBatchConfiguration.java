@@ -4,6 +4,8 @@ import com.springbatch.simplespringbatch.domain.OSProduct;
 import com.springbatch.simplespringbatch.domain.Product;
 import com.springbatch.simplespringbatch.domain.ProductFieldSetMapper;
 import com.springbatch.simplespringbatch.domain.ProductRowMapper;
+import com.springbatch.simplespringbatch.domain.ProductValidator;
+import com.springbatch.simplespringbatch.processor.ProductFilterItemProcessor;
 import com.springbatch.simplespringbatch.processor.MyProductItemProcessor;
 import com.springbatch.simplespringbatch.reader.ProductNameItemReader;
 import org.jspecify.annotations.Nullable;
@@ -32,6 +34,7 @@ import org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMap
 import org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.infrastructure.item.validator.ValidatingItemProcessor;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -134,18 +137,33 @@ public class ChunkBatchConfiguration {
     }
 
     @Bean
-    public ItemWriter<OSProduct> jdbcBatchItemWriter() throws Exception {
-        return new JdbcBatchItemWriterBuilder<OSProduct>()
+    public ItemWriter<Product> jdbcBatchItemWriter() throws Exception {
+        return new JdbcBatchItemWriterBuilder<Product>()
                 .dataSource(dataSource)
-                .sql("insert into OS_PRODUCT_DETAILS_OUTPUT values(:productId, :productName, :productCategory, :productPrice, :taxPercent, :sku, :shippingRate)")
+                .sql("insert into PRODUCT_DETAILS_OUTPUT values(:productId, :productName, :productCategory, :productPrice)")
 //                .itemPreparedStatementSetter(new ProductItemPrepareStatementSetter())
                 .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
                 .build();
     }
 
     @Bean
+    public ValidatingItemProcessor<Product> validatorProductItemProcessor() {
+        ValidatingItemProcessor<Product> productValidatingItemProcessor = new ValidatingItemProcessor<>();
+        productValidatingItemProcessor.setValidator(new ProductValidator());
+        // for this flag is true => if an item failed the validation => skip it, otherwise the job fails
+        productValidatingItemProcessor.setFilter(true);
+        return productValidatingItemProcessor;
+    }
+
+
+    @Bean
     public ItemProcessor<Product, OSProduct> myProductItemProcessor() {
         return new MyProductItemProcessor();
+    }
+
+    @Bean
+    public ItemProcessor<Product, Product> filterProductItemProcessor() {
+        return new ProductFilterItemProcessor();
     }
 
     @Bean
@@ -187,9 +205,11 @@ public class ChunkBatchConfiguration {
     @Bean
     public Step productStepFromJdbcPagingItemReaderToFlatFileWriter() throws Exception {
         return new StepBuilder("productStep2", jobRepository)
-                .<Product, OSProduct>chunk(3)
+                .<Product, Product>chunk(3)
                 .reader(jdbcPagingItemReader())
-                .processor(myProductItemProcessor())
+                .processor(validatorProductItemProcessor())
+//                .processor(filterProductItemProcessor())
+//                .processor(myProductItemProcessor())
                 .writer(jdbcBatchItemWriter())
                 .build();
     }
