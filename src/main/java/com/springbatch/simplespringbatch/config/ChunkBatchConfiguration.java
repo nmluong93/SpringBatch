@@ -8,6 +8,7 @@ import com.springbatch.simplespringbatch.domain.ProductValidator;
 import com.springbatch.simplespringbatch.processor.ProductFilterItemProcessor;
 import com.springbatch.simplespringbatch.processor.TransformProductItemProcessor;
 import com.springbatch.simplespringbatch.reader.ProductNameItemReader;
+import com.springbatch.simplespringbatch.skippolicy.MySkipPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.job.Job;
@@ -78,6 +79,9 @@ public class ChunkBatchConfiguration {
 
     @Autowired
     private SkipListener<Product, OSProduct> itemSkipListener;
+
+    @Autowired
+    private MySkipPolicy mySkipPolicy;
 
     @Bean
     public ItemReader<String> itemReader() {
@@ -254,9 +258,10 @@ public class ChunkBatchConfiguration {
                 .reader(flatFileItemReader())
                 .processor(compositeItemProcessor())
                 .faultTolerant()
-                    .skip(ValidationException.class)
-                    .skip(FlatFileFormatException.class)
-                    .skipLimit(3)
+//                    .skip(ValidationException.class)
+//                    .skip(FlatFileFormatException.class)
+//                    .skipLimit(3)
+                .skipPolicy(mySkipPolicy)
                 .skipListener(itemSkipListener)
 //                .processor(validatorProductItemProcessor())
 //                .processor(filterProductItemProcessor())
