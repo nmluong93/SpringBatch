@@ -1,10 +1,14 @@
 package com.springbatch.simplespringbatch.listener;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class MyStepExecutionListener implements StepExecutionListener {
     /**
      * Give a listener a chance to modify the exit status from a step. The value returned
@@ -20,8 +24,9 @@ public class MyStepExecutionListener implements StepExecutionListener {
      */
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
-        System.out.println("MyStepExecutionListener afterStep");
-        return new ExitStatus("TEST_STATUS");
+        log.info("MyStepExecutionListener:afterStep - Step name: {}", stepExecution.getStepName());
+        log.info("Start time: {}. End time: {}", stepExecution.getStartTime(), stepExecution.getEndTime());
+        return new ExitStatus("COMPLETED");
     }
 
     /**
@@ -32,6 +37,7 @@ public class MyStepExecutionListener implements StepExecutionListener {
      */
     @Override
     public void beforeStep(StepExecution stepExecution) {
-        StepExecutionListener.super.beforeStep(stepExecution);
+        log.info("MyStepExecutionListener:beforeStep - Step name: {}", stepExecution.getStepName());
+        log.info("Start time: {}", stepExecution.getStartTime());
     }
 }
