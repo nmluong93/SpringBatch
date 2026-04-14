@@ -5,6 +5,7 @@ import com.springbatch.simplespringbatch.domain.Product;
 import com.springbatch.simplespringbatch.domain.ProductFieldSetMapper;
 import com.springbatch.simplespringbatch.domain.ProductRowMapper;
 import com.springbatch.simplespringbatch.domain.ProductValidator;
+import com.springbatch.simplespringbatch.exception.MyException;
 import com.springbatch.simplespringbatch.processor.ProductFilterItemProcessor;
 import com.springbatch.simplespringbatch.processor.TransformProductItemProcessor;
 import com.springbatch.simplespringbatch.reader.ProductNameItemReader;
@@ -261,8 +262,9 @@ public class ChunkBatchConfiguration {
 //                    .skip(ValidationException.class)
 //                    .skip(FlatFileFormatException.class)
 //                    .skipLimit(3)
-                .skipPolicy(mySkipPolicy)
-                .skipListener(itemSkipListener)
+//                .skipPolicy(mySkipPolicy)
+                .retry(MyException.class).retryLimit(4)
+//                .skipListener(itemSkipListener)
 //                .processor(validatorProductItemProcessor())
 //                .processor(filterProductItemProcessor())
 //                .processor(myProductItemProcessor())

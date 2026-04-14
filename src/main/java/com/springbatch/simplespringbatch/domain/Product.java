@@ -15,8 +15,8 @@ public class Product {
 //    @Pattern(regexp = "Mobile Phones|Tablets|Televisions|Sports Accessories|Cameras")
     private String productCategory;
 
-    @Min(0)
-    @Max(100_000)
+//    @Min(0)
+//    @Max(100_000)
     private Integer productPrice;
 
 }

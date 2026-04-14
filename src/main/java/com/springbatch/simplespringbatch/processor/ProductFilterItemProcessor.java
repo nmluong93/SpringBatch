@@ -1,12 +1,18 @@
 package com.springbatch.simplespringbatch.processor;
 
 import com.springbatch.simplespringbatch.domain.Product;
+import com.springbatch.simplespringbatch.exception.MyException;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
 
+import java.util.Random;
+
 @Slf4j
 public class ProductFilterItemProcessor implements ItemProcessor<Product, Product> {
+    //FIXME just for testing for transient exception
+    private static int retryCount = 0;
+
     /**
      * Process the provided item, returning a potentially modified or new item for
      * continued processing. If the returned result is {@code null}, it is assumed that
@@ -32,6 +38,10 @@ public class ProductFilterItemProcessor implements ItemProcessor<Product, Produc
 //            return item;
 //        }
 //        return null;
+        if (item.getProductPrice() == 500 && retryCount++ < 7) {
+            log.error("Exception thrown");
+            throw new MyException("Product price is less than 500");
+        }
         return item;
     }
 }
