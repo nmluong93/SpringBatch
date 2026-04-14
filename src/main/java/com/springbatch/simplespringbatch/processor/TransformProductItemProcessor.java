@@ -32,7 +32,7 @@ public class TransformProductItemProcessor implements ItemProcessor<Product, OSP
     public @Nullable OSProduct process(Product item) throws Exception {
         int price = item.getProductPrice();
         item.setProductPrice(price * 110/100);
-        log.info("Processing product {} with original price {} and increasing to {}", item.getProductName(), price, item.getProductPrice());
+        log.info("Processing product {}", item.getProductId());
 
         int taxPercent = item.getProductCategory().equals("Sports Accessories") ? 5 : 18;
         String sku = item.getProductName().substring(0, 3) + item.getProductId();

@@ -1,9 +1,11 @@
 package com.springbatch.simplespringbatch.processor;
 
 import com.springbatch.simplespringbatch.domain.Product;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
 
+@Slf4j
 public class ProductFilterItemProcessor implements ItemProcessor<Product, Product> {
     /**
      * Process the provided item, returning a potentially modified or new item for
@@ -25,9 +27,11 @@ public class ProductFilterItemProcessor implements ItemProcessor<Product, Produc
      */
     @Override
     public @Nullable Product process(Product item) throws Exception {
-        if (item.getProductId() % 2 == 0) {
-            return item;
-        }
-        return null;
+        log.info("Filter for Product {}", item.toString());
+//        if (item.getProductId() % 2 == 0) {
+//            return item;
+//        }
+//        return null;
+        return item;
     }
 }
