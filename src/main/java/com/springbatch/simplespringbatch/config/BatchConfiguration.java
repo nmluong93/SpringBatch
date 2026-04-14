@@ -1,6 +1,7 @@
 package com.springbatch.simplespringbatch.config;
 
 import com.springbatch.simplespringbatch.decider.MyJobExecutionDecider;
+import com.springbatch.simplespringbatch.listener.MyJobExecutionListener;
 import com.springbatch.simplespringbatch.listener.MyStepExecutionListener;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -28,6 +29,9 @@ public class BatchConfiguration {
 
     @Autowired
     private JobRepository jobRepository;
+
+    @Autowired
+    private MyJobExecutionListener myJobExecutionListener;
 
     private static final Logger log = LoggerFactory.getLogger(BatchConfiguration.class);
 
@@ -169,6 +173,7 @@ public class BatchConfiguration {
         return new JobBuilder("jobRunningParallelWithFlows", jobRepository)
                 .start(splitFlow())
                 .end()
+                .listener(myJobExecutionListener)
                 .build();
     }
 
