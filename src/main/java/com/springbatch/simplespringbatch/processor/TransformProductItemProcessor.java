@@ -37,6 +37,9 @@ public class TransformProductItemProcessor implements ItemProcessor<Product, OSP
         int taxPercent = item.getProductCategory().equals("Sports Accessories") ? 5 : 18;
         String sku = item.getProductName().substring(0, 3) + item.getProductId();
         int shippingRate = item.getProductPrice() < 1000 ? 75: 0;
+//        if (item.getProductPrice() > 100) {
+//            throw new Exception("Product price cannot be greater than 100");
+//        }
         return new OSProduct(item, taxPercent, sku, shippingRate);
     }
 }
