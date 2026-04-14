@@ -22,7 +22,7 @@ public class ProductRowMapper implements org.springframework.jdbc.core.RowMapper
      */
     @Override
     public Product mapRow(ResultSet rs, int rowNum) throws SQLException {
-        log.info("Row processed: {} \n ResultSet: {}", rowNum, rs);
+        log.info("ResultSet: {}", rs);
         return new Product(rs.getInt("product_id"), rs.getString("product_name"), rs.getString("product_category"), rs.getInt("product_price"));
 
     }

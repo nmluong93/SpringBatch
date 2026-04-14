@@ -18,17 +18,23 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemReader;
 import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.database.BeanPropertyItemSqlParameterSourceProvider;
+import org.springframework.batch.infrastructure.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.infrastructure.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.batch.infrastructure.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.infrastructure.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMapper;
+import org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
@@ -109,6 +115,32 @@ public class ChunkBatchConfiguration {
     }
 
     @Bean
+    public ItemWriter<Product> flatFileItemWriter() {
+        DelimitedLineAggregator<Product> lineAggregator = new DelimitedLineAggregator<>();
+        lineAggregator.setDelimiter(",");
+        BeanWrapperFieldExtractor<Product> fieldExtractor = new BeanWrapperFieldExtractor<>();
+        fieldExtractor.setNames(new String[]{"productId", "productName", "productCategory", "productPrice"});
+
+        lineAggregator.setFieldExtractor(fieldExtractor);
+
+        return new FlatFileItemWriterBuilder<Product>()
+                .name("FlatFileItemWriter")
+                .resource(new FileSystemResource("src/main/resources/data/Product_Details_FromDB.csv"))
+                .lineAggregator(lineAggregator)
+                .build();
+    }
+
+    @Bean
+    public ItemWriter<Product> jdbcBatchItemWriter() throws Exception {
+        return new JdbcBatchItemWriterBuilder<Product>()
+                .dataSource(dataSource)
+                .sql("insert into PRODUCT_DETAILS_OUTPUT values(:productId, :productName, :productCategory, :productPrice)")
+//                .itemPreparedStatementSetter(new ProductItemPrepareStatementSetter())
+                .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
+                .build();
+    }
+
+    @Bean
     public Step step1() {
         return new StepBuilder("step1", jobRepository)
                 .<String, String>chunk(10)
@@ -144,11 +176,20 @@ public class ChunkBatchConfiguration {
                 .build();
     }
 
+    @Bean
+    public Step productStepFromJdbcPagingItemReaderToFlatFileWriter() throws Exception {
+        return new StepBuilder("productStep2", jobRepository)
+                .<Product, Product>chunk(3)
+                .reader(jdbcPagingItemReader())
+                .writer(jdbcBatchItemWriter())
+                .build();
+    }
+
 
     @Bean
     public Job firstJob(JobRepository jobRepository) throws Exception {
         return new JobBuilder("simpleJobWithNextTransition", jobRepository)
-                .start(productStep())
+                .start(productStepFromJdbcPagingItemReaderToFlatFileWriter())
                 .build();
     }
 
